@@ -1,3 +1,15 @@
-python3 classifier.py TRAIN /home/gunner/drive/AIT/git/thesis/specialstudy/facenet-krasserm/data/aligned_faces /home/gunner/drive/AIT/git/thesis/specialstudy/facenet-krasserm/models/20180402-114759/20180402-114759.pb /home/gunner/drive/AIT/git/thesis/specialstudy/facenet-krasserm/models/classifier_20181113_01.pkl --batch_size 5 --min_nrof_images_per_class 2 --nrof_train_images_per_class 35 --use_split_dataset
+# Align the faces
+for N in {1..4};
+do
+  python3 align/align_dataset_mtcnn.py /home/gunner/drive/AIT/git/thesis/specialstudy/facenet-krasserm/data/images /home/gunner/drive/AIT/git/thesis/specialstudy/facenet-krasserm/data/aligned_faces
+done
+
+
+
+
+for N in {1..4};
+do
+  python3 classifier.py TRAIN /home/gunner/drive/AIT/git/thesis/specialstudy/facenet-krasserm/data/aligned_faces /home/gunner/drive/AIT/git/thesis/specialstudy/facenet-krasserm/models/20180402-114759/20180402-114759.pb /home/gunner/drive/AIT/git/thesis/specialstudy/facenet-krasserm/models/classifier_20181113_01.pkl --batch_size 5 --min_nrof_images_per_class 2 --nrof_train_images_per_class 35 --use_split_dataset
+done
 
 python3 classifier.py CLASSIFY /home/gunner/drive/AIT/git/thesis/specialstudy/facenet-krasserm/data/test_dataset /home/gunner/drive/AIT/git/thesis/specialstudy/facenet-krasserm/models/20180402-114759/20180402-114759.pb /home/gunner/drive/AIT/git/thesis/specialstudy/facenet/models/classifier_20181113_01.pkl --batch_size 5 --min_nrof_images_per_class 2 --nrof_train_images_per_class 35 --use_split_dataset
