@@ -1,15 +1,36 @@
 # Align the faces
 for N in {1..4};
 do
-  python3 align/align_dataset_mtcnn.py /home/gunner/drive/AIT/git/thesis/specialstudy/facenet-krasserm/data/images /home/gunner/drive/AIT/git/thesis/specialstudy/facenet-krasserm/data/aligned_faces
+  python3 /Public/Amir/git/facenet-krasserm/src/align/align_dataset_mtcnn.py /Public/Amir/dataset/ACME-55 /Public/Amir/dataset/aligned_faces/train
 done
-
 
 
 
 for N in {1..4};
 do
-  python3 classifier.py TRAIN /home/gunner/drive/AIT/git/thesis/specialstudy/facenet-krasserm/data/aligned_faces /home/gunner/drive/AIT/git/thesis/specialstudy/facenet-krasserm/models/20180402-114759/20180402-114759.pb /home/gunner/drive/AIT/git/thesis/specialstudy/facenet-krasserm/models/classifier_20181113_01.pkl --batch_size 5 --min_nrof_images_per_class 2 --nrof_train_images_per_class 35 --use_split_dataset
+  python3 /Public/Amir/git/facenet-krasserm/src/classifier.py TRAIN  /Public/Amir/dataset/aligned_faces/train /Public/Amir/git/facenet-krasserm/models/20180402-114759 /Public/Amir/git/facenet-krasserm/models/classifier-20190117-1513.pkl --test_data_dir /home/aitvision/st119480/FaceRecognition_Dataset/test --batch_size 5 --min_nrof_images_per_class 7
 done
 
 python3 classifier.py CLASSIFY /home/gunner/drive/AIT/git/thesis/specialstudy/facenet-krasserm/data/test_dataset /home/gunner/drive/AIT/git/thesis/specialstudy/facenet-krasserm/models/20180402-114759/20180402-114759.pb /home/gunner/drive/AIT/git/thesis/specialstudy/facenet/models/classifier_20181113_01.pkl --batch_size 5 --min_nrof_images_per_class 2 --nrof_train_images_per_class 35 --use_split_dataset
+
+
+python3 /Public/Amir/git/facenet-krasserm/src/train_softmax.py \
+--logs_base_dir /Public/Amir/git/facenet-krasserm/logs/facenet/ \
+--models_base_dir /Public/Amir/git/facenet-krasserm/models/facenet/ \
+--data_dir /Public/Amir/dataset/aligned_faces/train \
+--image_size 160 \
+--model_def models.inception_resnet_v1 \
+--optimizer ADAM \
+--learning_rate -1 \
+--max_nrof_epochs 500 \
+--batch_size 90 \
+--keep_probability 0.8 \
+--random_flip \
+--use_fixed_image_standardization \
+--learning_rate_schedule_file /Public/Amir/git/facenet-krasserm/data/learning_rate_ACME_softmax.txt \
+--weight_decay 5e-4 \
+--embedding_size 512 \
+--validation_set_split_ratio 0.2 \
+--validate_every_n_epochs 5
+
+030-1-90938-1
