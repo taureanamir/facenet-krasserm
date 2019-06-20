@@ -1,4 +1,4 @@
-# For KBTG
+# For KBTG:
 # Step 1: Generate embeddings of the trusted images. For this the trusted images and captured images
 # should not be in the directory.
 
