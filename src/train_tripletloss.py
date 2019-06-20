@@ -147,11 +147,22 @@ def main(args):
         total_loss = tf.add_n([triplet_loss] + regularization_losses, name='total_loss')
 
         # Build a Graph that trains the model with one batch of examples and updates the model parameters
-        train_op = facenet.train(total_loss, global_step, args.optimizer, 
-            learning_rate, args.moving_average_decay, tf.global_variables())
-        
+        # train_op = facenet.train(total_loss, global_step, args.optimizer,
+        #     learning_rate, args.moving_average_decay, tf.global_variables())
+
+        # fine_turn ftune_vlist variables
+        # print("All TF variables: ", tf.trainable_variables())
+        # print("----------------------------------------------------------------")
+        all_vars = tf.trainable_variables()
+        ftune_vlist = [v for v in all_vars if v.name.startswith('InceptionResnetV1/Block8')]
+        train_op = facenet.train(total_loss, global_step, args.optimizer,
+            learning_rate, args.moving_average_decay, ftune_vlist)
+
         # Create a saver
-        saver = tf.train.Saver(tf.trainable_variables(), max_to_keep=3)
+        # saver = tf.train.Saver(tf.trainable_variables(), max_to_keep=3)
+
+        # Create a saver for after fine tune
+        saver = tf.train.Saver(ftune_vlist, max_to_keep=3)
 
         # Build the summary operation based on the TF collection of Summaries.
         summary_op = tf.summary.merge_all()
@@ -438,9 +449,9 @@ def parse_arguments(argv):
     parser.add_argument('--image_size', type=int,
         help='Image size (height, width) in pixels.', default=160)
     parser.add_argument('--people_per_batch', type=int,
-        help='Number of people per batch.', default=45)
+        help='Number of people per batch.', default=27)
     parser.add_argument('--images_per_person', type=int,
-        help='Number of images per person.', default=40)
+        help='Number of images per person.', default=20)
     parser.add_argument('--epoch_size', type=int,
         help='Number of batches per epoch.', default=1000)
     parser.add_argument('--alpha', type=float,
