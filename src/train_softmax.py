@@ -143,12 +143,37 @@ def main(args):
         prelogits, _ = network.inference(image_batch, args.keep_probability, 
             phase_train=phase_train_placeholder, bottleneck_layer_size=args.embedding_size, 
             weight_decay=args.weight_decay)
+        print("Prelogits: ", prelogits)
+        print("--------------------------- train set length", len(train_set))
         logits = slim.fully_connected(prelogits, len(train_set), activation_fn=None, 
                 weights_initializer=slim.initializers.xavier_initializer(), 
                 weights_regularizer=slim.l2_regularizer(args.weight_decay),
                 scope='Logits', reuse=False)
 
+        # output = tf.identity(self.output, name='output')
+        #
+        # output = graph.get_tensor_by_name('output:0')
+
+        for op in tf.get_default_graph().get_operations():
+            print(str(op.name))
+
+        # logitsoutput = tf.get_default_graph().get_operation_by_name('Logits/BiasAdd')
+        # print("---------------- logits output", logitsoutput)
+
+        logitsoutput = tf.get_default_graph().get_tensor_by_name('Logits/BiasAdd:0')
+        print("---------------- logits output", logitsoutput)
+
+        # baz = session.run(logitsoutput, feed_dict={x: images_test[0:10, :, :, :]})
+        # print(baz.shape)
+
+        # tf.identity(logits, name='output')
+        #
+        # output = tf.Graph().get_tensor_by_name('output:0')
+        #
+        # print(output)
+
         embeddings = tf.nn.l2_normalize(prelogits, 1, 1e-10, name='embeddings')
+        print("---- Embeddings : ", embeddings)
 
         # Norm for the prelogits
         eps = 1e-4
@@ -177,11 +202,32 @@ def main(args):
         total_loss = tf.add_n([cross_entropy_mean] + regularization_losses, name='total_loss')
 
         # Build a Graph that trains the model with one batch of examples and updates the model parameters
-        train_op = facenet.train(total_loss, global_step, args.optimizer, 
-            learning_rate, args.moving_average_decay, tf.global_variables(), args.log_histograms)
-        
-        # Create a saver
-        saver = tf.train.Saver(tf.trainable_variables(), max_to_keep=3)
+        # train_op = facenet.train(total_loss, global_step, args.optimizer,
+        #     learning_rate, args.moving_average_decay, tf.global_variables(), args.log_histograms)
+
+        # fine_turn ftune_vlist variables
+        # print("All TF variables: ", tf.trainable_variables())
+        # print("----------------------------------------------------------------")
+        # all_vars = tf.trainable_variables()
+        # ftune_vlist = [v for v in all_vars if v.name.startswith('InceptionResnetV1/Block8')]
+        # train_op = facenet.train(total_loss, global_step, args.optimizer,
+        #                          learning_rate, args.moving_average_decay, ftune_vlist, args.log_histograms)
+
+        # # Create a saver
+        # saver = tf.train.Saver(tf.trainable_variables(), max_to_keep=3)
+
+
+        # Create a saver for after fine tune
+        # saver = tf.train.Saver(ftune_vlist, max_to_keep=3)
+
+        all_vars = tf.trainable_variables()
+        var_to_restore = [v for v in all_vars if not v.name.startswith('Logits')]
+        train_op = facenet.train(total_loss, global_step, args.optimizer,
+                        learning_rate, args.moving_average_decay, var_to_restore, args.log_histograms)
+        saver = tf.train.Saver(var_to_restore)
+
+
+
 
         # Build the summary operation based on the TF collection of Summaries.
         summary_op = tf.summary.merge_all()
@@ -257,7 +303,7 @@ def main(args):
 
                 print('Saving statistics')
                 with h5py.File(stat_file_name, 'w') as f:
-                    for key, value in stat.iteritems():
+                    for key, value in stat.items():
                         f.create_dataset(key, data=value)
     
     return model_dir
