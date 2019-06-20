@@ -41,11 +41,11 @@ import align.detect_face
 import facenet
 
 
-gpu_memory_fraction = 0.3
+gpu_memory_fraction = 0.9
 # facenet_model_checkpoint = os.path.dirname(__file__) + "/../model_checkpoints/20170512-110547"
 # classifier_model = os.path.dirname(__file__) + "/../model_checkpoints/my_classifier_1.pkl"
 facenet_model_checkpoint = os.path.dirname(__file__) + "/models/20180402-114759"
-classifier_model = os.path.dirname(__file__) + "/models/classifier_20181113_01.pkl"
+classifier_model = os.path.dirname(__file__) + "/models/avl-classifier.pkl"
 debug = False
 
 
@@ -92,9 +92,19 @@ class Identifier:
 
     def identify(self, face):
         if face.embedding is not None:
+            threshold = 0.75
             predictions = self.model.predict_proba([face.embedding])
             best_class_indices = np.argmax(predictions, axis=1)
-            return self.class_names[best_class_indices[0]]
+            best_class_probabilities = predictions[np.arange(len(best_class_indices)), best_class_indices]
+
+            print("-------------------------------")
+            print("Name: -------> ",self.class_names[best_class_indices[0]])
+            print("best_class_probabilities: -------> ",best_class_probabilities)
+
+            if best_class_probabilities > threshold:
+                return self.class_names[best_class_indices[0]]
+            else:
+                return 'Unknown'
 
 
 class Encoder:
