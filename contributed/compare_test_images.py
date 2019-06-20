@@ -1,3 +1,11 @@
+"""
+Author: taureanamir
+Created : Jun 20, 2019
+
+This script needs to be run after the numpy array files of face embeddings and labels are generated.
+Use script export_embeddings.py to generate the numpy array files.
+"""
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -11,9 +19,6 @@ import copy
 import argparse
 import facenet
 import align.detect_face
-
-
-
 
 
 def main(args):
