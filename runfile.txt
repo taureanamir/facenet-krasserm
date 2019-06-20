@@ -1,3 +1,15 @@
+# For KBTG
+# Step 1: Generate embeddings of the trusted images. For this the trusted images and captured images
+# should not be in the directory.
+
+python3 /mnt/drive/Amir/work/git/facenet-krasserm/contributed/export_embeddings.py /mnt/drive/Amir/work/git/facenet-krasserm/pretrained-models/20180402-114759/ /mnt/drive/Amir/work/git/facenet-krasserm/data/kbtg/trusted/ --is_aligned False --embeddings_name embeddings_kbtg_test.npy --labels_name labels_kbtg_test.npy --labels_strings_name label_strings_kbtg_test.npy
+
+# Step 2: Load the generated embeddings to compare with the embeddings of the test images. The script compare_test_images.py does this part.
+
+python3 /mnt/drive/Amir/work/git/facenet-krasserm/contributed/compare_one_to_many.py /mnt/drive/Amir/work/git/facenet-krasserm/pretrained-models/20180402-114759/ /mnt/drive/Amir/work/git/facenet-krasserm/data/kbtg/captured/Jednipat/captured.jpg
+
+
+
 # Align the faces
 for N in {1..4};
 do
