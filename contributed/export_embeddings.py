@@ -67,6 +67,7 @@ def main(args):
     train_set = facenet.get_dataset(args.data_dir)
     image_list, label_list = facenet.get_image_paths_and_labels(train_set)
     # fetch the classes (labels as strings) exactly as it's done in get_dataset
+    image_list = sorted(image_list)
     path_exp = os.path.expanduser(args.data_dir)
     classes = [path for path in os.listdir(path_exp) \
                if os.path.isdir(os.path.join(path_exp, path))]
@@ -148,6 +149,8 @@ def load_and_align_data(image_paths, image_size, margin, gpu_memory_fraction):
         img = misc.imread(os.path.expanduser(image_paths[i]))
         img_size = np.asarray(img.shape)[0:2]
         bounding_boxes, _ = align.detect_face.detect_face(img, minsize, pnet, rnet, onet, threshold, factor)
+        print("----- Bounding box ------------------")
+        print(bounding_boxes)
         det = np.squeeze(bounding_boxes[0,0:4])
         bb = np.zeros(4, dtype=np.int32)
         bb[0] = np.maximum(det[0]-margin/2, 0)
