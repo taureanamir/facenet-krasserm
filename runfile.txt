@@ -1,66 +1,131 @@
 # Align the faces
 for N in {1..4};
 do
-  python3 /mnt/drive/Amir/git/facenet-krasserm/src/align/align_dataset_mtcnn.py /mnt/drive/Amir/git/facenet-krasserm/data/AVL-faces-final/train /mnt/drive/Amir/git/facenet-krasserm/data/AVL-faces-final/aligned-images/train
+  python3 /mnt/drive/Amir/work/git/facenet-krasserm/src/align/align_dataset_mtcnn.py /mnt/drive/Amir/Thesis/dataset/face-recognition/Final-face-dataset/train /mnt/drive/Amir/Thesis/dataset/face-recognition/Final-face-dataset/aligned-images/train
 done
 
 
-
+# Train the classifier
 for N in {1..4};
 do
-  python3 /mnt/drive/Amir/git/facenet-krasserm/src/classifier.py TRAIN  /Public/Amir/dataset/aligned_faces/train /mnt/drive/Amir/git/facenet-krasserm/models/20180402-114759 /mnt/drive/Amir/git/facenet-krasserm/models/classifier-20190117-1513.pkl --test_data_dir /home/aitvision/st119480/FaceRecognition_Dataset/test --batch_size 5 --min_nrof_images_per_class 7
+  python3 /mnt/drive/Amir/work/git/facenet-krasserm/src/classifier.py TRAIN  /mnt/drive/Amir/work/git/facenet-krasserm/data/kbtg/trusted/ /mnt/drive/Amir/work/git/facenet-krasserm/pretrained-models/20180402-114759 /mnt/drive/Amir/work/git/facenet-krasserm/models/kbtg.pkl --test_data_dir /mnt/drive/Amir/work/git/facenet-krasserm/data/kbtg/captured/ --batch_size 8 --min_nrof_images_per_class 1
 done
 
-python3 classifier.py CLASSIFY /home/gunner/drive/AIT/git/thesis/specialstudy/facenet-krasserm/data/test_dataset /home/gunner/drive/AIT/git/thesis/specialstudy/facenet-krasserm/models/20180402-114759/20180402-114759.pb /home/gunner/drive/AIT/git/thesis/specialstudy/facenet/models/classifier_20181113_01.pkl --batch_size 5 --min_nrof_images_per_class 2 --nrof_train_images_per_class 35 --use_split_dataset
+# Predict using the classifier
+python3 /mnt/drive/Amir/work/git/facenet-krasserm/contributed/predict.py /mnt/drive/Amir/work/git/facenet-krasserm/data/kbtg/captured/Aniqua/captured.jpg /mnt/drive/Amir/work/git/facenet-krasserm/pretrained-models/20180402-114759/ /mnt/drive/Amir/work/git/facenet-krasserm/models/kbtg.pkl
+
+# Predict using the comparison
+python3 /mnt/drive/Amir/work/git/facenet-krasserm/test.py /mnt/drive/Amir/work/git/facenet-krasserm/pretrained-models/20180402-114759/ /mnt/drive/Amir/work/git/facenet-krasserm/data/kbtg/captured/Aniqua/captured.jpg
 
 
-python3 /mnt/drive/Amir/git/facenet-krasserm/src/train_softmax.py \
---logs_base_dir /mnt/drive/Amir/git/facenet-krasserm/logs/softmax/ \
---models_base_dir /mnt/drive/Amir/git/facenet-krasserm/models/ \
---gpu_memory_fraction 0.45 \
---pretrained_model  /mnt/drive/Amir/git/facenet-krasserm/pretrained-models/20180402-114759/model-20180402-114759.ckpt-275 \
---data_dir /mnt/drive/Amir/git/facenet-krasserm/data/AVL-faces-final/aligned-images/train \
+python3 /mnt/drive/Amir/work/git/facenet-krasserm/src/train_softmax.py \
+--logs_base_dir /mnt/drive/Amir/work/git/facenet-krasserm/logs/softmax/ \
+--models_base_dir /mnt/drive/Amir/work/git/facenet-krasserm/models/softmax_new/ \
+--gpu_memory_fraction 0.95 \
+--pretrained_model  /mnt/drive/Amir/work/git/facenet-krasserm/pretrained-models/20180402-114759/model-20180402-114759.ckpt-275 \
+--data_dir /mnt/drive/Amir/work/git/facenet-krasserm/data/test/training-images \
+--model_def models.inception_resnet_v1 \
+--max_nrof_epochs 10 \
+--batch_size 8 \
+--image_size 160 \
+--epoch_size 10 \
+--use_fixed_image_standardization \
+--embedding_size 512 \
+--optimizer ADAM \
+--learning_rate 0.001 \
+--keep_probability 0.8 \
+--weight_decay 5e-4 \
+--validation_set_split_ratio 0.2 \
+--validate_every_n_epochs 5
+
+
+
+python3 /mnt/drive/Amir/work/git/facenet-krasserm/src/classifier.py CLASSIFY  /mnt/drive/Amir/work/git/facenet-krasserm/data/Final-face-dataset/aligned-images/test /mnt/drive/Amir/work/git/facenet-krasserm/models/epoch-415/ /mnt/drive/Amir/work/git/facenet-krasserm/models/epoch-415/homkrun-classifier-epoch-415.pkl --min_nrof_images_per_class 1
+
+python3 /mnt/drive/Amir/work/git/facenet-krasserm/src/classifier.py CLASSIFY /mnt/drive/Amir/work/git/facenet-krasserm/data/Final-face-dataset/aligned-images/test //mnt/drive/Amir/work/git/facenet-krasserm/models/epoch-290 /mnt/drive/Amir/work/git/facenet-krasserm/models/epoch-290/homkrun-classifier-epoch-290.pkl --batch_size 50 --min_nrof_images_per_class 1 --nrof_train_images_per_class 50
+
+python3 /mnt/drive/Amir/work/git/facenet-krasserm/contributed/predict.py ~/Downloads/avashna.jpg /mnt/drive/Amir/work/git/facenet-krasserm/models/epoch-415/homkrun.pb /mnt/drive/Amir/work/git/facenet-krasserm/models/epoch-415/homkrun-classifier-epoch-415.pkl
+
+
+python3 /mnt/drive/Amir/work/git/facenet-krasserm/contributed/predict.py /mnt/drive/Amir/work/git/facenet-krasserm/data/Final-face-dataset/aligned-images/test/3068/3068_24326.png  /mnt/drive/Amir/work/git/facenet-krasserm/models/epoch-140/homkrun.pb /mnt/drive/Amir/work/git/facenet-krasserm/models/epoch-140/classifier_homkrun_epoch140.pkl
+
+-- run webcam
+python3 /mnt/drive/Amir/work/git/facenet-krasserm/contributed/real_time_face_recognition.py
+
+python3 /mnt/drive/Amir/work/git/facenet-krasserm/src/train_softmax.py \
+--logs_base_dir /mnt/drive/Amir/work/git/facenet-krasserm/logs/softmax/ \
+--models_base_dir /mnt/drive/Amir/work/git/facenet-krasserm/models/softmax/ \
+--gpu_memory_fraction 0.95 \
+--pretrained_model  /mnt/drive/Amir/work/git/facenet-krasserm/pretrained-models/20180402-114759/model-20180402-114759.ckpt-275 \
+--data_dir /mnt/drive/Amir/Thesis/dataset/face-recognition/Final-face-dataset/aligned-images/train \
 --model_def models.inception_resnet_v1 \
 --max_nrof_epochs 500 \
---batch_size 50 \
+--batch_size 131 \
 --image_size 160 \
---epoch_size 300 \
+--epoch_size 1000 \
+--use_fixed_image_standardization \
 --embedding_size 512 \
 --optimizer ADAM \
 --learning_rate -1 \
 --keep_probability 0.8 \
---random_flip \
---use_fixed_image_standardization \
---learning_rate_schedule_file /mnt/drive/Amir/git/facenet-krasserm/data/learning_rate_retrain_avl_softmax.txt \
+--learning_rate_schedule_file /mnt/drive/Amir/work/git/facenet-krasserm/data/learning_rate_retrain_homkrun_softmax.txt \
 --weight_decay 5e-4 \
 --validation_set_split_ratio 0.2 \
 --validate_every_n_epochs 5 \
---lfw_pairs /mnt/drive/Amir/git/facenet-krasserm/data/AVL-faces-final/avl_pairs.txt \
---lfw_dir /mnt/drive/Amir/git/facenet-krasserm/data/AVL-faces-final/aligned-images/test \
---lfw_batch_size 81
+--lfw_pairs /mnt/drive/Amir/Thesis/dataset/face-recognition/Final-face-dataset/homkrun_pairs.txt \
+--lfw_dir /mnt/drive/Amir/Thesis/dataset/face-recognition/Final-face-dataset/aligned-images/test \
+--lfw_batch_size 393 \
+--lfw_subtract_mean
+
+
+
 
 The number of LFW images must be an integer multiple of the LFW batch size
 
 
 
 
-python3 /mnt/drive/Amir/git/facenet-krasserm/src/train_tripletloss.py \
---logs_base_dir /mnt/drive/Amir/git/facenet-krasserm/logs/tripletloss/ \
---models_base_dir /mnt/drive/Amir/git/facenet-krasserm/models/ \
---pretrained_model  /mnt/drive/Amir/git/facenet-krasserm/pretrained-models/20180402-114759/model-20180402-114759.ckpt-275 \
---data_dir /mnt/drive/Amir/git/facenet-krasserm/data/AVL-faces-final/aligned-images/train \
+python3 /mnt/drive/Amir/work/git/facenet-krasserm/src/train_tripletloss.py \
+--logs_base_dir /mnt/drive/Amir/work/git/facenet-krasserm/logs/tripletloss/ \
+--models_base_dir /mnt/drive/Amir/work/git/facenet-krasserm/models/tripletloss \
+--pretrained_model  /mnt/drive/Amir/work/git/facenet-krasserm/pretrained-models/20180402-114759/model-20180402-114759.ckpt-275 \
+--data_dir /mnt/drive/Amir/work/git/facenet-krasserm/data/Final-face-dataset/aligned-images/train \
 --image_size 160 \
 --model_def models.inception_resnet_v1 \
---optimizer ADAM \
+--optimizer ADAGRAD \
 --learning_rate -1 \
 --max_nrof_epochs 500 \
 --gpu_memory_fraction 0.45 \
---epoch_size 300 \
+--epoch_size 1000 \
 --batch_size 90 \
 --keep_probability 0.8 \
 --random_flip \
---learning_rate_schedule_file /mnt/drive/Amir/git/facenet-krasserm/data/learning_rate_retrain_avl_softmax.txt \
+--learning_rate_schedule_file /mnt/drive/Amir/work/git/facenet-krasserm/data/learning_rate_retrain_avl_tripletloss.txt \
 --weight_decay 5e-4 \
+--learning_rate_decay_factor 0.98 \
+--learning_rate_decay_epochs 4 \
 --embedding_size 512 \
---lfw_pairs /mnt/drive/Amir/git/facenet-krasserm/data/AVL-faces-final/avl_pairs.txt \
---lfw_dir /mnt/drive/Amir/git/facenet-krasserm/data/AVL-faces-final/aligned-images/test
+--lfw_pairs /mnt/drive/Amir/work/git/facenet-krasserm/data/Final-face-dataset/avl_pairs.txt \
+--lfw_dir /mnt/drive/Amir/work/git/facenet-krasserm/data/Final-face-dataset/aligned-images/test
+
+
+python src/train_tripletloss.py --logs_base_dir ~/workspace/logs/facenet/ --models_base_dir ~/workspace/models/facenet/ --data_dir ~/workspace/datasets/lfw/lfw_mtcnnpy_182 --image_size 182 --model_def models.inception_resnet_v1 --lfw_dir ~/workspace/datasets/lfw/lfw_mtcnnpy_182 --optimizer ADAGRAD --learning_rate 0.05 --learning_rate_decay_factor 0.98 --learning_rate_decay_epochs 4 --weight_decay 2e-4 --max_nrof_epochs 500 --people_per_batch 720 --images_per_person 5
+
+-- validate on lfw
+python3 git/facenet-krasserm/src/validate_on_lfw.py \
+/git/facenet-krasserm/data/Final-face-dataset/aligned-images/test \
+/git/facenet-krasserm/facenet-model/model-epoch67/model67.pb \
+--distance_metric 1 \
+--lfw_pairs /git/facenet-krasserm/data/Final-face-dataset/homkrun_pairs.txt \
+--use_flipped_images \
+--subtract_mean \
+--lfw_batch_size 393 \
+--use_fixed_image_standardization
+
+-- freeze_graph
+python3 /mnt/drive/Amir/work/git/facenet-krasserm/src/freeze_graph.py /mnt/drive/Amir/work/git/facenet-krasserm/models/epoch-290/ /mnt/drive/Amir/work/git/facenet-krasserm/models/epoch-290/homkrun.pb
+
+
+python3 /mnt/drive/Amir/work/git/facenet-krasserm/contributed/export_embeddings.py /mnt/drive/Amir/work/git/facenet-krasserm/models/epoch-415/ /mnt/drive/Amir/Thesis/dataset/face-recognition/Final-face-dataset/aligned-images/train --is_aligned True
+
+python3 /mnt/drive/Amir/work/git/facenet-krasserm/contributed/export_embeddings.py /mnt/drive/Amir/work/git/facenet-krasserm/pretrained-models/20180402-114759/ /mnt/drive/Amir/work/git/facenet-krasserm/data/kbtg/trusted/ --is_aligned False --embeddings_name embeddings_kbtg_test.npy --labels_name labels_kbtg_test.npy --labels_strings_name label_strings_kbtg_test.npy
