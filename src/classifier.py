@@ -60,7 +60,7 @@ def main(args):
 
                  
             paths, labels = facenet.get_image_paths_and_labels(dataset)
-            
+
             print('Number of classes: %d' % len(dataset))
             print('Number of images: %d' % len(paths))
             
@@ -71,6 +71,9 @@ def main(args):
             # Get input and output tensors
             images_placeholder = tf.get_default_graph().get_tensor_by_name("input:0")
             embeddings = tf.get_default_graph().get_tensor_by_name("embeddings:0")
+            print("-------------------------------------------")
+            print(embeddings)
+            print("-------------------------------------------")
             phase_train_placeholder = tf.get_default_graph().get_tensor_by_name("phase_train:0")
             embedding_size = embeddings.get_shape()[1]
             
@@ -93,6 +96,9 @@ def main(args):
                 # Train classifier
                 print('Training classifier')
                 model = SVC(kernel='linear', probability=True)
+                print("embeddings of ID: ", labels)
+                print(emb_array)
+                print("*************************************************")
                 model.fit(emb_array, labels)
             
                 # Create a list of class names
@@ -114,9 +120,19 @@ def main(args):
                 predictions = model.predict_proba(emb_array)
                 best_class_indices = np.argmax(predictions, axis=1)
                 best_class_probabilities = predictions[np.arange(len(best_class_indices)), best_class_indices]
-                
+
+                threshold = 0.65
+
+
+                for i in range(len(paths)):
+                    print (os.path.basename(os.path.normpath(paths[i])))
+
                 for i in range(len(best_class_indices)):
-                    print('%4d  %s: %.3f' % (i, class_names[best_class_indices[i]], best_class_probabilities[i]))
+                    if best_class_probabilities[i] > threshold:
+                        print('%4d  %s: %.3f ' % (i, class_names[best_class_indices[i]], best_class_probabilities[i]))
+                    else:
+                        print('%4d  %s: %.3f %s' % (i, class_names[best_class_indices[i]], best_class_probabilities[i], '--> Unknown'))
+
                     
                 accuracy = np.mean(np.equal(best_class_indices, labels))
                 print('Accuracy: %.3f' % accuracy)
