@@ -40,6 +40,7 @@ import re
 from tensorflow.python.platform import gfile
 import math
 from six import iteritems
+import cv2
 
 def triplet_loss(anchor, positive, negative, alpha):
     """Calculate the triplet loss according to the FaceNet paper
@@ -245,10 +246,19 @@ def load_data(image_paths, do_random_crop, do_random_flip, image_size, do_prewhi
     images = np.zeros((nrof_samples, image_size, image_size, 3))
     for i in range(nrof_samples):
         img = misc.imread(image_paths[i])
+
+        height = img.shape[0]
+        width = img.shape[1]
+
+        if (height < image_size or width < image_size):
+            img = cv2.resize(img, (image_size, image_size))
+
         if img.ndim == 2:
             img = to_rgb(img)
         if do_prewhiten:
             img = prewhiten(img)
+
+        # print("IMg size: ", width, height, image_size)
         img = crop(img, do_random_crop, image_size)
         img = flip(img, do_random_flip)
         images[i,:,:,:] = img
