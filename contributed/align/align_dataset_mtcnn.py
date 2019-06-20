@@ -31,8 +31,8 @@ import os
 import argparse
 import tensorflow as tf
 import numpy as np
-import facenet
-import detect_face
+import align.facenet as facenet
+import align.detect_face as detect_face
 import random
 from time import sleep
 
