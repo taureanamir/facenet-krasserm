@@ -56,7 +56,8 @@ def main(args):
     frame_rate = 0
     frame_count = 0
 
-    video_capture = cv2.VideoCapture(0)
+    # video_capture = cv2.VideoCapture(0)
+    video_capture = cv2.VideoCapture("/mnt/drive/Amir/avl-video-for-face-test.mp4")
     face_recognition = face.Recognition()
     start_time = time.time()
 
@@ -69,6 +70,7 @@ def main(args):
         ret, frame = video_capture.read()
 
         if (frame_count % frame_interval) == 0:
+
             faces = face_recognition.identify(frame)
 
             # Check our current fps
