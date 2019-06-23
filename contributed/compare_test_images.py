@@ -19,6 +19,7 @@ import copy
 import argparse
 import facenet
 import align.detect_face
+import csv
 
 
 def main(args):
@@ -40,9 +41,9 @@ def main(args):
             emb = sess.run(embeddings, feed_dict=feed_dict)
 
             # load the embeddings calculated earlier
-            embeddings = np.load('/mnt/drive/Amir/work/git/facenet-krasserm/contributed/embeddings_kbtg_test.npy')
-            labels = np.load('/mnt/drive/Amir/work/git/facenet-krasserm/contributed/labels_kbtg_test.npy')
-            label_strings = np.load('/mnt/drive/Amir/work/git/facenet-krasserm/contributed/label_strings_kbtg_test.npy')
+            embeddings = np.load('/facenet/contributed/embeddings/embeddings_kbtg_test.npy')
+            labels = np.load('/facenet/contributed/embeddings/labels_kbtg_test.npy')
+            label_strings = np.load('/facenet/contributed/embeddings/label_strings_kbtg_test.npy')
 
             emb_dict = dict(zip(label_strings, embeddings))
 
@@ -53,11 +54,30 @@ def main(args):
                 # print('  %1.4f  ' % dist, end='')
 
             predicted_output = min(prediction_dict, key=prediction_dict.get)
+            distance = prediction_dict.get(predicted_output)
             print("-----------------------------------------------------------")
             print("Prediction: ", predicted_output)
-            print("Distance: ", prediction_dict.get(predicted_output))
-            print("-----------------------------------------------------------")
+            print("Distance: ", distance)
+            # print("Image: ", args.image_files)
+            # print("Image: ", str(args.image_files).rindex('/'))
+            # print("Image: ", str(args.image_files).rsplit('/')[-2])
+            ground_truth = str(args.image_files).rsplit('/')[-2]
 
+            if predicted_output == ground_truth:
+                prediction = True
+            else:
+                prediction = False
+
+            print("Correct: ", prediction)
+
+            print("-----------------------------------------------------------")
+            with open('/facenet/contributed/output.csv', mode='a') as output_file:
+                # fieldnames = ['ID', 'L2 Distance', 'Predicted ID', 'Correct']
+                # file_writer = csv.DictWriter(output_file, fieldnames=fieldnames)
+                # file_writer.writeheader()
+                # file_writer.writerow({'ID': ground_truth, 'L2 Distance': distance, 'Predicted ID': predicted_output, 'Correct': prediction})
+                file_writer = csv.writer(output_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+                file_writer.writerow([ground_truth, distance, predicted_output, prediction])
 
 def load_and_align_data(image_paths, image_size, margin, gpu_memory_fraction):
     minsize = 20  # minimum size of face

@@ -6,7 +6,7 @@ python3 /mnt/drive/Amir/work/git/facenet-krasserm/contributed/export_embeddings.
 
 # Step 2: Load the generated embeddings to compare with the embeddings of the test images. The script compare_test_images.py does this part.
 
-python3 /mnt/drive/Amir/work/git/facenet-krasserm/contributed/compare_one_to_many.py /mnt/drive/Amir/work/git/facenet-krasserm/pretrained-models/20180402-114759/ /mnt/drive/Amir/work/git/facenet-krasserm/data/kbtg/captured/Jednipat/captured.jpg
+python3 /mnt/drive/Amir/work/git/facenet-krasserm/contributed/compare_test_images.py /mnt/drive/Amir/work/git/facenet-krasserm/pretrained-models/20180402-114759/ /mnt/drive/Amir/work/git/facenet-krasserm/data/kbtg/captured/Jednipat/captured.jpg
 
 
 
