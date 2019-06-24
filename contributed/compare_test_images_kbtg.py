@@ -1,0 +1,164 @@
+"""
+Author: taureanamir
+Created : Jun 20, 2019
+
+This script needs to be run after the numpy array files of face embeddings and labels are generated.
+Use script export_embeddings.py to generate the numpy array files.
+"""
+
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
+from scipy import misc
+import tensorflow as tf
+import numpy as np
+import sys
+import os
+import copy
+import argparse
+import facenet
+import align.detect_face
+import csv
+
+
+def main(args):
+    images_list_after_align = load_and_align_data(args.image_dir_path, args.image_size, args.margin, args.gpu_memory_fraction)
+    # for image in images_list_after_align:
+    #     print("Image: ", image)
+    with tf.Graph().as_default():
+
+        with tf.Session() as sess:
+
+            # Load the model
+            facenet.load_model(args.model)
+            # load the embeddings calculated earlier
+            # all_embeddings = np.load('/facenet/contributed/embeddings/embeddings_kbtg_test.npy')
+            # all_labels = np.load('/facenet/contributed/embeddings/labels_kbtg_test.npy')
+            # all_label_strings = np.load('/facenet/contributed/embeddings/label_strings_kbtg_test.npy')
+
+            all_embeddings = np.load(
+                '/mnt/drive/Amir/work/git/facenet-krasserm/contributed/embeddings/embeddings_kbtg_test.npy')
+            all_labels = np.load(
+                '/mnt/drive/Amir/work/git/facenet-krasserm/contributed/embeddings/labels_kbtg_test.npy')
+            all_label_strings = np.load(
+                '/mnt/drive/Amir/work/git/facenet-krasserm/contributed/embeddings/label_strings_kbtg_test.npy')
+            emb_dict = dict(zip(all_label_strings, all_embeddings))
+
+            for images in images_list_after_align:
+                # print("Image: ", images)
+
+                # Get input and output tensors
+                images_placeholder = tf.get_default_graph().get_tensor_by_name("input:0")
+                embeddings = tf.get_default_graph().get_tensor_by_name("embeddings:0")
+                phase_train_placeholder = tf.get_default_graph().get_tensor_by_name("phase_train:0")
+
+                # Run forward pass to calculate embeddings
+                feed_dict = {images_placeholder: images[1], phase_train_placeholder: False}
+                emb = sess.run(embeddings, feed_dict=feed_dict)
+
+                prediction_dict = {}
+                for k,v  in emb_dict.items():
+                    dist = np.sqrt(np.sum(np.square(np.subtract(v, emb))))
+                    prediction_dict[k] = dist
+                    # print('  %1.4f  ' % dist, end='')
+
+                predicted_output = min(prediction_dict, key=prediction_dict.get)
+                distance = prediction_dict.get(predicted_output)
+                print("-----------------------------------------------------------")
+                print("Prediction: ", predicted_output)
+                print("Distance: ", distance)
+                # print("Image: ", args.image_files)
+                # print("Image: ", str(args.image_files).rindex('/'))
+                # print("Image: ", str(args.image_files).rsplit('/')[-2])
+                # ground_truth = str(args.image_files).rsplit('/')[-2]
+                ground_truth = images[0]
+
+                if predicted_output == ground_truth:
+                    prediction = True
+                else:
+                    prediction = False
+
+                print("Correct: ", prediction)
+
+                print("-----------------------------------------------------------")
+                with open('/mnt/drive/Amir/work/git/facenet-krasserm/contributed/embeddings/output.csv', mode='a') as output_file:
+                    # fieldnames = ['ID', 'L2 Distance', 'Predicted ID', 'Correct']
+                    # file_writer = csv.DictWriter(output_file, fieldnames=fieldnames)
+                    # file_writer.writeheader()
+                    # file_writer.writerow({'ID': ground_truth, 'L2 Distance': distance, 'Predicted ID': predicted_output, 'Correct': prediction})
+                    file_writer = csv.writer(output_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+                    file_writer.writerow([ground_truth, distance, predicted_output, prediction])
+
+def load_and_align_data(image_paths, image_size, margin, gpu_memory_fraction):
+
+    minsize = 20  # minimum size of face
+    threshold = [0.6, 0.7, 0.7]  # three steps's threshold
+    factor = 0.709  # scale factor
+    # ground_truth = str(image_paths).rsplit('/')[-2]
+
+    print('Creating networks and loading parameters')
+    with tf.Graph().as_default():
+        gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=gpu_memory_fraction)
+        sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options, log_device_placement=False))
+        with sess.as_default():
+            pnet, rnet, onet = align.detect_face.create_mtcnn(sess, None)
+
+    capturedFile = '/captured.jpeg'
+    image_paths = image_paths[0]
+    images_list = []
+    for name in os.listdir(image_paths):
+        if name == ".DS_Store":
+            continue
+
+        # print("Image path: ", image_paths + name + capturedFile)
+
+        tmp_image_paths = copy.copy(image_paths + name + capturedFile)
+        # print("Temp image path: ", image_paths + name + capturedFile)
+        img_list = []
+
+        print("------------- image: ", tmp_image_paths)
+        img = misc.imread(os.path.expanduser(tmp_image_paths), mode='RGB')
+        # print("------------- img: ", img)
+        img_size = np.asarray(img.shape)[0:2]
+        bounding_boxes, _ = align.detect_face.detect_face(img, minsize, pnet, rnet, onet, threshold, factor)
+        if len(bounding_boxes) < 1:
+            image_paths.remove(tmp_image_paths)
+            print("can't detect face, remove ", tmp_image_paths)
+            continue
+        det = np.squeeze(bounding_boxes[0, 0:4])
+        bb = np.zeros(4, dtype=np.int32)
+        bb[0] = np.maximum(det[0] - margin / 2, 0)
+        bb[1] = np.maximum(det[1] - margin / 2, 0)
+        bb[2] = np.minimum(det[2] + margin / 2, img_size[1])
+        bb[3] = np.minimum(det[3] + margin / 2, img_size[0])
+        cropped = img[bb[1]:bb[3], bb[0]:bb[2], :]
+        aligned = misc.imresize(cropped, (image_size, image_size), interp='bilinear')
+        prewhitened = facenet.prewhiten(aligned)
+        img_list.append(prewhitened)
+        images = np.stack(img_list)
+        images_list.append([name,images])
+        # print("Images: ", images)
+    # print("List: ", images_list)
+    return images_list
+
+
+def parse_arguments(argv):
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('model', type=str,
+                        help='Could be either a directory containing the meta_file and ckpt_file or a model protobuf (.pb) file')
+    parser.add_argument('image_dir_path', type=str, nargs='+', help='Directory of Images to compare')
+    parser.add_argument('--image_size', type=int,
+                        help='Image size (height, width) in pixels.', default=160)
+    parser.add_argument('--margin', type=int,
+                        help='Margin for the crop around the bounding box (height, width) in pixels.', default=44)
+    parser.add_argument('--gpu_memory_fraction', type=float,
+                        help='Upper bound on the amount of GPU memory that will be used by the process.', default=1.0)
+    return parser.parse_args(argv)
+
+
+if __name__ == '__main__':
+    main(parse_arguments(sys.argv[1:]))
+
+
