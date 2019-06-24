@@ -1,0 +1,13 @@
+# For KBTG:
+Step 1:
+First use the script "separate_trusted_captured_images.py" to separate trusted images. The trusted images folder will be used to generate embeddings in step 2.
+
+
+# Step 2: Generate embeddings of the trusted images. For this the trusted images and captured images
+# should not be in the directory.
+
+python3 /facenet/contributed/export_embeddings.py /data/kbtg/face_model/ /data/kbtg/KBTG/trusted/ --is_aligned False --embeddings_name /facenet/contributed/embeddings/embeddings_kbtg_test.npy --labels_name /facenet/contributed/embeddings/labels_kbtg_test.npy --labels_strings_name /facenet/contributed/embeddings/label_strings_kbtg_test.npy
+
+# Step 3: Load the generated embeddings to compare with the embeddings of the test images. The script compare_test_images.py does this part.
+
+python3 /facenet/contributed/compare_test_images_kbtg.py /data/kbtg/face_model/ /data/kbtg/KBTG/captured/
