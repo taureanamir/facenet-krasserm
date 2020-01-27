@@ -194,7 +194,7 @@ def main(args):
 
         train_op = facenet.train(total_loss, global_step, args.optimizer,
                                  learning_rate, args.moving_average_decay, var_to_restore, args.log_histograms)
-        saver = tf.train.Saver(var_to_restore,  max_to_keep=3)
+        saver = tf.train.Saver(var_to_restore,  max_to_keep=10)
 
         # Build the summary operation based on the TF collection of Summaries.
         summary_op = tf.summary.merge_all()
